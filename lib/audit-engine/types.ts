@@ -33,4 +33,5 @@ export interface AuditResult {
   isAlreadyOptimal: boolean;
   spendPerDeveloper: number;
   benchmarkAverage: number;
+  aiSummary?: string;
 }

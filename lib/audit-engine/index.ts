@@ -8,9 +8,17 @@ export function runAudit(input: AuditFormInput): AuditResult {
   const totalCurrentSpend = input.tools.reduce((sum, t) => sum + t.monthlySpend, 0);
   const totalMonthlySavings = toolAudits.reduce((sum, t) => sum + t.savingsPerMonth, 0);
   
-  const spendPerDeveloper = totalCurrentSpend / Math.max(1, input.teamSize);
-  // Benchmark average: ~$45/dev/mo for small teams, ~$35/dev/mo for large teams
-  const benchmarkAverage = input.teamSize < 10 ? 45 : 35;
+  // Calculate total seats across all tools for a more accurate spend-per-seat metric
+  const totalSeats = input.tools.reduce((sum, t) => sum + t.seats, 0);
+  const spendPerSeat = totalCurrentSpend / Math.max(1, totalSeats);
+  
+  // Benchmark logic: 
+  // - Small teams (<10) usually pay more per user ($45-60)
+  // - Mid teams (10-50) optimize more ($30-45)
+  // - Large teams (50+) often have enterprise deals ($20-35)
+  let benchmarkAverage = 45;
+  if (input.teamSize >= 50) benchmarkAverage = 25;
+  else if (input.teamSize >= 10) benchmarkAverage = 35;
 
   return {
     auditId: uuidv4(),
@@ -19,7 +27,7 @@ export function runAudit(input: AuditFormInput): AuditResult {
     totalMonthlySavings,
     totalAnnualSavings: totalMonthlySavings * 12,
     isAlreadyOptimal: totalMonthlySavings < 10,
-    spendPerDeveloper,
+    spendPerDeveloper: spendPerSeat, // Using spend per actual tool seat
     benchmarkAverage,
   };
 }

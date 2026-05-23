@@ -66,6 +66,19 @@ export function AuditForm() {
     setLoading(true);
 
     try {
+      // Basic validation
+      if (formData.teamSize <= 0) {
+        toast.error('Team size must be at least 1');
+        setLoading(false);
+        return;
+      }
+
+      if (formData.tools.some(t => t.seats <= 0 || t.monthlySpend < 0)) {
+        toast.error('Tool seats and spend must be positive values');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

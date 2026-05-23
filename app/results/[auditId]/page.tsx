@@ -77,7 +77,7 @@ export default async function ResultsPage({ params }: PageProps) {
         </Link>
         <div className="flex items-center gap-4">
           <EmailReportButton auditId={auditId} teamSize={audit.team_size} />
-          <ExportPDFButton />
+          <ExportPDFButton auditId={auditId} />
           <ShareButton />
         </div>
       </div>

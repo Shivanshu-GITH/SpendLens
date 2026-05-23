@@ -12,10 +12,16 @@ interface AISummaryProps {
 }
 
 export function AISummary({ auditResult, teamSize, primaryUseCase }: AISummaryProps) {
-  const [summary, setSummary] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<string>(auditResult.aiSummary || '');
+  const [loading, setLoading] = useState(!auditResult.aiSummary);
 
   useEffect(() => {
+    // Only fetch if we don't already have a summary (for legacy audits)
+    if (auditResult.aiSummary) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchSummary() {
       try {
         const response = await fetch('/api/summary', {

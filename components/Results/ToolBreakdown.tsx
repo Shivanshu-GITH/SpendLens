@@ -49,7 +49,7 @@ function AuditCard({ audit }: { audit: ToolAudit }) {
           </div>
           <div>
             <CardTitle className="text-xl font-bold capitalize">
-              {audit.toolId.replace('_', ' ')}
+              {audit.toolId.replace(/_/g, ' ')}
             </CardTitle>
             <p className="text-sm text-slate-400">
               Current: {audit.currentPlan} — ${audit.currentMonthlySpend}/mo

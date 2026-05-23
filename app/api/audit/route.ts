@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAudit } from '@/lib/audit-engine';
 import { supabaseAdmin } from '@/lib/supabase';
+import { generateAuditSummary } from '@/lib/ai-summary';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
+    if (!rateLimit(ip)) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    }
+
     const body = await req.json();
     const { tools, teamSize, primaryUseCase } = body;
 
@@ -13,7 +20,13 @@ export async function POST(req: NextRequest) {
 
     const result = runAudit({ tools, teamSize, primaryUseCase });
 
-    console.log('Generated Audit Result:', result);
+    // Generate AI Summary once at audit time
+    let aiSummary = '';
+    try {
+      aiSummary = await generateAuditSummary(result, teamSize, primaryUseCase);
+    } catch (e) {
+      console.error('Failed to generate AI summary during audit:', e);
+    }
 
     // Save to Supabase
     const { data, error } = await supabaseAdmin
@@ -21,7 +34,7 @@ export async function POST(req: NextRequest) {
       .insert({
         id: result.auditId,
         tools_input: { tools, teamSize, primaryUseCase },
-        audit_result: result,
+        audit_result: { ...result, aiSummary }, // Persist summary in the result object
         total_monthly_savings: result.totalMonthlySavings,
         total_annual_savings: result.totalAnnualSavings,
         team_size: teamSize,

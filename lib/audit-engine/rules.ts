@@ -80,7 +80,7 @@ export function auditTool(tool: ToolInput, input: AuditFormInput): ToolAudit {
       ...defaultAudit,
       action: 'switch',
       recommendedTool: 'claude',
-      reason: 'For writing-heavy use cases, Claude is superior to ChatGPT. Consolidate into Claude to save $${tool.monthlySpend}/mo.',
+      reason: `For writing-heavy use cases, Claude is superior to ChatGPT. Consolidate into Claude to save $${tool.monthlySpend}/mo.`,
       savingsPerMonth: tool.monthlySpend,
     });
   }

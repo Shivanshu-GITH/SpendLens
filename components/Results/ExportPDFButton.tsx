@@ -3,101 +3,105 @@
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
-export function ExportPDFButton() {
+interface ExportPDFButtonProps {
+  auditId?: string;
+}
+
+export function ExportPDFButton({ auditId }: ExportPDFButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
     setLoading(true);
+    const toastId = toast.loading('Generating your PDF report...');
+
     try {
       const originalElement = document.getElementById('audit-report-content');
-      if (!originalElement) return;
+      if (!originalElement) {
+        throw new Error('Report content not found');
+      }
 
-      // Dynamically import libraries
+      // Wait a bit to ensure AI Summary and other dynamic content are fully rendered
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const [jsPDF, html2canvas] = await Promise.all([
         import('jspdf').then(m => m.default),
         import('html2canvas').then(m => m.default)
       ]);
 
-      // 1. Create a helper to convert any color to RGB
-      const toRgb = (color: string) => {
-        if (!color || color === 'transparent' || color === 'none') return color;
-        if (color.startsWith('rgb')) return color;
-        
-        const temp = document.createElement('div');
-        temp.style.color = color;
-        document.body.appendChild(temp);
-        const rgb = window.getComputedStyle(temp).color;
-        document.body.removeChild(temp);
-        
-        // If the browser still returns oklch/lab, we need a hard fallback
-        if (rgb.includes('oklch') || rgb.includes('lab')) {
-          if (color.includes('emerald')) return 'rgb(52, 211, 153)';
-          if (color.includes('slate')) return 'rgb(15, 23, 42)';
-          if (color.includes('blue')) return 'rgb(59, 130, 246)';
-          return 'rgb(255, 255, 255)';
-        }
-        return rgb;
-      };
-
-      // 2. Options for html2canvas
-      const options = {
+      const canvas = await html2canvas(originalElement, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#020617',
         logging: false,
         onclone: (clonedDoc: Document) => {
-          // Remove ALL style/link tags that might contain unsupported CSS functions
-          const styles = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
-          styles.forEach(s => s.remove());
-
           const report = clonedDoc.getElementById('audit-report-content');
           if (!report) return;
 
-          // Apply absolute basic styling to the report container
-          report.style.backgroundColor = '#020617';
-          report.style.color = '#f8fafc';
-          report.style.fontFamily = 'sans-serif';
-          report.style.padding = '40px';
-          report.style.width = '800px';
+          // Helper to convert modern colors to RGB
+          const convertColor = (color: string) => {
+            if (!color || (!color.includes('oklch') && !color.includes('lab'))) return color;
+            const temp = document.createElement('div');
+            temp.style.color = color;
+            document.body.appendChild(temp);
+            const resolved = window.getComputedStyle(temp).color;
+            document.body.removeChild(temp);
+            return resolved;
+          };
 
-          // Recursively sanitize every element
+          // Sanitize every element's colors without stripping styles
           const allElements = report.getElementsByTagName('*');
           for (let i = 0; i < allElements.length; i++) {
             const el = allElements[i] as HTMLElement;
-            
-            // Get computed style from the ORIGINAL element
-            const originalEl = document.getElementsByTagName('*')[i]; // This is a bit risky but fallback
             const style = window.getComputedStyle(el);
 
-            // Force convert critical properties to RGB
-            const props = ['color', 'backgroundColor', 'borderColor', 'fill', 'stroke'];
-            props.forEach(prop => {
+            ['color', 'backgroundColor', 'borderColor', 'fill', 'stroke'].forEach(prop => {
               const val = style.getPropertyValue(prop);
               if (val.includes('oklch') || val.includes('lab')) {
-                el.style.setProperty(prop, toRgb(val), 'important');
+                el.style.setProperty(prop, convertColor(val), 'important');
               }
             });
+
+            // Handle gradients
+            const bgImg = style.backgroundImage;
+            if (bgImg && (bgImg.includes('oklch') || bgImg.includes('lab'))) {
+              el.style.backgroundImage = 'none';
+              if (!el.style.backgroundColor) el.style.backgroundColor = '#0f172a';
+            }
 
             // Disable animations
             el.style.animation = 'none';
             el.style.transition = 'none';
           }
         }
-      };
+      });
 
-      const canvas = await html2canvas(originalElement, options);
       const imgData = canvas.toDataURL('image/png');
-      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('spendlens-audit-report.pdf');
+      // Handle multi-page content
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`spendlens-audit-${auditId || 'report'}.pdf`);
+      toast.success('PDF downloaded successfully!', { id: toastId });
     } catch (error) {
       console.error('PDF Export Error:', error);
+      toast.error('Failed to generate PDF. Please try again.', { id: toastId });
     } finally {
       setLoading(false);
     }
