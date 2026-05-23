@@ -1,0 +1,29 @@
+🚀 Just launched SpendLens — the free, 2-minute audit tool for startup teams to see exactly where their AI budget is burning.
+
+Most startups are paying for 3+ redundant coding assistants without realizing it. We built a deterministic engine to find those savings for you.
+
+Check it out: spendlens.vercel.app
+
+1/6 Why we built this?
+AI tool sprawl is real. Teams have Cursor, Copilot, ChatGPT Plus, and Claude Pro all running at once. That's $80+/mo per dev in redundant features.
+
+2/6 How it works?
+Enter your stack (no login/no bank sync required). Our engine identifies:
+✅ Redundant tools (e.g. Cursor vs Copilot)
+✅ Plan mismatches (Team vs Individual)
+✅ API optimization opportunities
+
+3/6 Benchmark your spend
+Ever wondered if you're spending more than your peers? SpendLens compares your AI spend per developer against industry averages for Seed and Growth stage startups.
+
+4/6 Defensible Data
+We don't just give you a number. Every recommendation comes with a plain-English, finance-literate reason based on verified vendor pricing data.
+
+5/6 Shareable Reports
+Need to convince your CFO to cut the sprawl? Generate a unique shareable URL or export a full PDF report in one click.
+
+6/6 Built by the team at @CredexAI to help startups scale their AI infrastructure efficiently.
+
+Try it now for free: spendlens.vercel.app 🧾✨
+
+#AI #Startups #FinOps #SaaS #BuildInPublic
