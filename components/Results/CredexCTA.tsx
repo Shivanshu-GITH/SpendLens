@@ -20,16 +20,15 @@ export function OptimizationCTA() {
           </p>
         </div>
         
-        <button 
+        <Button 
+          size="lg" 
           onClick={() => {
             window.dispatchEvent(new CustomEvent('open-lead-modal'));
           }}
-          className="contents"
+          className="bg-white text-indigo-950 hover:bg-indigo-50 font-black h-14 px-8 text-lg"
         >
-          <Button size="lg" className="bg-white text-indigo-950 hover:bg-indigo-50 font-black h-14 px-8 text-lg">
-            Claim My Credits <ExternalLink className="w-5 h-5 ml-2" />
-          </Button>
-        </button>
+          Claim My Credits <ExternalLink className="w-5 h-5 ml-2" />
+        </Button>
       </div>
     </div>
   );

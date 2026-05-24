@@ -22,82 +22,96 @@ export function ExportPDFButton({ auditId }: ExportPDFButtonProps) {
         throw new Error('Report content not found');
       }
 
-      // Wait a bit to ensure AI Summary and other dynamic content are fully rendered
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait a bit to ensure dynamic content and animations are ready
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       const [jsPDF, html2canvas] = await Promise.all([
         import('jspdf').then(m => m.default),
         import('html2canvas').then(m => m.default)
       ]);
 
-      const canvas = await html2canvas(originalElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#020617',
-        logging: false,
-        onclone: (clonedDoc: Document) => {
-          const report = clonedDoc.getElementById('audit-report-content');
-          if (!report) return;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      
+      // Use the modern .html() method for better rendering and page management
+      await new Promise<void>((resolve, reject) => {
+        pdf.html(originalElement, {
+          callback: (doc) => {
+            doc.save(`spendlens-audit-${auditId || 'report'}.pdf`);
+            resolve();
+          },
+          x: 0,
+          y: 0,
+          width: pageWidth,
+          windowWidth: 1024,
+          autoPaging: 'text',
+          html2canvas: {
+            html2canvas: html2canvas, // Pass the imported reference
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#020617',
+            logging: false,
+            onclone: (clonedDoc: Document) => {
+              const report = clonedDoc.getElementById('audit-report-content');
+              if (!report) return;
 
-          // Helper to convert modern colors to RGB
-          const convertColor = (color: string) => {
-            if (!color || (!color.includes('oklch') && !color.includes('lab'))) return color;
-            const temp = document.createElement('div');
-            temp.style.color = color;
-            document.body.appendChild(temp);
-            const resolved = window.getComputedStyle(temp).color;
-            document.body.removeChild(temp);
-            return resolved;
-          };
+              // Helper to resolve oklch/lab colors to RGB
+              const resolveColor = (color: string) => {
+                if (!color || (!color.includes('oklch') && !color.includes('lab'))) return color;
+                
+                try {
+                  const temp = clonedDoc.createElement('div');
+                  temp.style.color = color;
+                  clonedDoc.body.appendChild(temp);
+                  const resolved = window.getComputedStyle(temp).color;
+                  clonedDoc.body.removeChild(temp);
+                  
+                  // If it still contains oklch/lab (browser doesn't resolve it or returns same string)
+                  // we must return a fallback hex to prevent html2canvas from crashing
+                  if (resolved.includes('oklch') || resolved.includes('lab')) {
+                    return '#1e293b'; // Default slate fallback
+                  }
+                  return resolved;
+                } catch (e) {
+                  return '#1e293b';
+                }
+              };
 
-          // Sanitize every element's colors without stripping styles
-          const allElements = report.getElementsByTagName('*');
-          for (let i = 0; i < allElements.length; i++) {
-            const el = allElements[i] as HTMLElement;
-            const style = window.getComputedStyle(el);
+              // Fix for Tailwind v4 modern colors and gradients
+              const allElements = report.getElementsByTagName('*');
+              for (let i = 0; i < allElements.length; i++) {
+                const el = allElements[i] as HTMLElement;
+                const style = window.getComputedStyle(el);
 
-            ['color', 'backgroundColor', 'borderColor', 'fill', 'stroke'].forEach(prop => {
-              const val = style.getPropertyValue(prop);
-              if (val.includes('oklch') || val.includes('lab')) {
-                el.style.setProperty(prop, convertColor(val), 'important');
+                // Standard color properties
+                const props = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'fill', 'stroke', 'outlineColor'];
+                props.forEach(prop => {
+                  const val = style.getPropertyValue(prop);
+                  if (val.includes('oklch') || val.includes('lab')) {
+                    el.style.setProperty(prop, resolveColor(val), 'important');
+                  }
+                });
+
+                // Background gradients
+                const bgImg = style.backgroundImage;
+                if (bgImg && (bgImg.includes('oklch') || bgImg.includes('lab'))) {
+                  const resolvedBg = bgImg.replace(/(oklch|lab)\([^)]+\)/g, (match) => resolveColor(match));
+                  el.style.backgroundImage = resolvedBg;
+                }
+
+                el.style.animation = 'none';
+                el.style.transition = 'none';
+                
+                if (el.id === 'audit-report-content') {
+                  el.style.height = 'auto';
+                  el.style.overflow = 'visible';
+                }
               }
-            });
-
-            // Handle gradients
-            const bgImg = style.backgroundImage;
-            if (bgImg && (bgImg.includes('oklch') || bgImg.includes('lab'))) {
-              el.style.backgroundImage = 'none';
-              if (!el.style.backgroundColor) el.style.backgroundColor = '#0f172a';
             }
-
-            // Disable animations
-            el.style.animation = 'none';
-            el.style.transition = 'none';
           }
-        }
+        });
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      // Handle multi-page content
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`spendlens-audit-${auditId || 'report'}.pdf`);
       toast.success('PDF downloaded successfully!', { id: toastId });
     } catch (error) {
       console.error('PDF Export Error:', error);
