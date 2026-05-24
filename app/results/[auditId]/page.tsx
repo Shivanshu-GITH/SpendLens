@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import { supabaseAdmin } from '@/lib/supabase';
+import { devAuditStore, useDevAuditStore } from '@/lib/dev-audit-store';
+import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { HeroSavings } from '@/components/Results/HeroSavings';
 import { ToolBreakdown } from '@/components/Results/ToolBreakdown';
@@ -19,7 +20,21 @@ interface PageProps {
 }
 
 async function getAudit(auditId: string) {
+  if (useDevAuditStore()) {
+    const data = devAuditStore.get(auditId);
+    if (!data) {
+      console.log('[dev] No audit found in memory for ID:', auditId);
+    }
+    return data;
+  }
+
+  if (!isSupabaseConfigured()) {
+    console.error('Supabase is not configured');
+    return null;
+  }
+
   console.log('Fetching audit from Supabase for ID:', auditId);
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from('audits')
     .select('*')

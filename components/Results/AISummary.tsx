@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AuditResult } from '@/lib/audit-engine/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { fetchJson } from '@/lib/fetch-json';
 
 interface AISummaryProps {
   auditResult: AuditResult;
@@ -24,12 +25,11 @@ export function AISummary({ auditResult, teamSize, primaryUseCase }: AISummaryPr
 
     async function fetchSummary() {
       try {
-        const response = await fetch('/api/summary', {
+        const { data } = await fetchJson<{ summary: string }>('/api/summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ auditResult, teamSize, primaryUseCase }),
         });
-        const data = await response.json();
         setSummary(data.summary);
       } catch (error) {
         console.error('Failed to fetch summary', error);
@@ -53,7 +53,7 @@ export function AISummary({ auditResult, teamSize, primaryUseCase }: AISummaryPr
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8" data-pdf-loading>
             <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
             <span className="ml-3 text-slate-400">AI is analyzing your stack...</span>
           </div>

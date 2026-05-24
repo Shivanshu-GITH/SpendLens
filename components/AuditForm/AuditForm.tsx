@@ -9,6 +9,7 @@ import { Plus, Calculator, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { ApiError, fetchJson } from '@/lib/fetch-json';
 
 const STORAGE_KEY = 'spendlens_audit_draft';
 
@@ -79,24 +80,22 @@ export function AuditForm() {
         return;
       }
 
-      const response = await fetch('/api/audit', {
+      const { data } = await fetchJson<{ auditId: string }>('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to run audit');
-      }
 
       const { auditId } = data;
       localStorage.removeItem(STORAGE_KEY);
       router.push(`/results/${auditId}`);
     } catch (error) {
       console.error(error);
-      toast.error('Something went wrong. Please try again.');
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : 'Something went wrong. Please try again.';
+      toast.error(message);
       setLoading(false);
     }
   };

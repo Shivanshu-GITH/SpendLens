@@ -1,11 +1,25 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+}
 
 export async function sendConfirmationEmail(email: string, auditId: string) {
+  const resend = getResendClient();
+  if (!resend) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dev] Skipping email — RESEND_API_KEY not set. Would send to:', email);
+      return { success: true, data: null };
+    }
+    console.warn('RESEND_API_KEY not set; skipping confirmation email');
+    return { success: false, error: 'Email not configured' };
+  }
+
   try {
     const { data, error } = await resend.emails.send({
-      from: 'SpendLens <onboarding@resend.dev>', // Replace with your verified domain in production
+      from: 'SpendLens <onboarding@resend.dev>',
       to: email,
       subject: 'Your AI Spend Audit Report is Ready',
       html: `
