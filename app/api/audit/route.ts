@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAudit } from '@/lib/audit-engine';
 import { generateAuditSummary } from '@/lib/ai-summary';
-import { devAuditStore, useDevAuditStore } from '@/lib/dev-audit-store';
+import { devAuditStore, shouldUseDevAuditStore } from '@/lib/dev-audit-store';
 import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       primary_use_case: primaryUseCase,
     };
 
-    if (useDevAuditStore()) {
+    if (shouldUseDevAuditStore()) {
       devAuditStore.save(record);
       console.log('[dev] Audit saved to in-memory store:', record.id);
       return NextResponse.json({ auditId: record.id, result: auditResult });

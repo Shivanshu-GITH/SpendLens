@@ -48,7 +48,7 @@ export function EmailReportButton({ auditId, teamSize }: EmailReportButtonProps)
         setIsOpen(false);
         setSubmitted(false);
       }, 2000);
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

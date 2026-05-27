@@ -19,7 +19,6 @@ export function AISummary({ auditResult, teamSize, primaryUseCase }: AISummaryPr
   useEffect(() => {
     // Only fetch if we don't already have a summary (for legacy audits)
     if (auditResult.aiSummary) {
-      setLoading(false);
       return;
     }
 
@@ -59,7 +58,7 @@ export function AISummary({ auditResult, teamSize, primaryUseCase }: AISummaryPr
           </div>
         ) : (
           <p className="text-slate-300 leading-relaxed italic">
-            "{summary}"
+            &quot;{summary}&quot;
           </p>
         )}
       </CardContent>

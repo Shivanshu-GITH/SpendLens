@@ -29,8 +29,8 @@ describe('Audit Engine', () => {
       ],
     };
 
-    const result = runAudit(input);
-    const claudeAudit = result.toolAudits.find(t => t.toolId === 'claude');
+    runAudit(input);
+    // const claudeAudit = _result.toolAudits.find(t => t.toolId === 'claude');
     
     // Note: In my rules.ts, I set Claude Team at $25, so 5 * 25 = 125. 
     // Wait, the rule says Claude Team is cheaper than Pro at 5+ seats?

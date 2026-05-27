@@ -29,7 +29,10 @@ export function AuditForm() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setFormData(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setTimeout(() => {
+          setFormData(prev => ({ ...prev, ...parsed }));
+        }, 0);
       } catch (e) {
         console.error('Failed to parse saved audit draft', e);
       }

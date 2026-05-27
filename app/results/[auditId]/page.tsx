@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { devAuditStore, useDevAuditStore } from '@/lib/dev-audit-store';
+import { devAuditStore, shouldUseDevAuditStore } from '@/lib/dev-audit-store';
 import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { HeroSavings } from '@/components/Results/HeroSavings';
@@ -20,7 +20,7 @@ interface PageProps {
 }
 
 async function getAudit(auditId: string) {
-  if (useDevAuditStore()) {
+  if (shouldUseDevAuditStore()) {
     const data = devAuditStore.get(auditId);
     if (!data) {
       console.log('[dev] No audit found in memory for ID:', auditId);

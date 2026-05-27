@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Share2, Check, Copy } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function ShareButton() {
@@ -23,7 +23,7 @@ export function ShareButton() {
           text: 'Check out how much I could save on my AI tool stack!',
           url: window.location.href,
         });
-      } catch (err) {
+      } catch {
         handleCopy();
       }
     } else {

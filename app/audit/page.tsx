@@ -12,7 +12,7 @@ export default function AuditPage() {
       <div className="mb-12">
         <h1 className="text-4xl font-extrabold mb-4">Run Your AI Spend Audit</h1>
         <p className="text-xl text-slate-400">
-          Enter your team's current AI tool stack below. We'll compare your spending against the best available plans and identifies overlaps.
+          Enter your team&apos;s current AI tool stack below. We&apos;ll compare your spending against the best available plans and identifies overlaps.
         </p>
       </div>
 

@@ -17,6 +17,8 @@ export async function sendConfirmationEmail(email: string, auditId: string) {
     return { success: false, error: 'Email not configured' };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   try {
     const { data, error } = await resend.emails.send({
       from: 'SpendLens <onboarding@resend.dev>',
@@ -28,7 +30,7 @@ export async function sendConfirmationEmail(email: string, auditId: string) {
           <p>Thank you for using SpendLens to audit your AI tool stack.</p>
           <p>You can view your full report at any time using the link below:</p>
           <div style="margin: 30px 0;">
-            <a href="https://spendlens.vercel.app/results/${auditId}" 
+            <a href="${baseUrl}/results/${auditId}" 
                style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                View My Audit Report
             </a>

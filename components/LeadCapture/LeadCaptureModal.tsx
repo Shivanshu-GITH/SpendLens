@@ -66,7 +66,7 @@ export function LeadCaptureModal({ auditId, teamSize, isAlreadyOptimal }: LeadCa
       localStorage.setItem('spendlens_lead_submitted', 'true');
       toast.success('Report sent to your email!');
       setTimeout(() => setIsOpen(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

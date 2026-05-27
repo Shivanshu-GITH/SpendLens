@@ -22,7 +22,6 @@ export function ToolBreakdown({ audits }: ToolBreakdownProps) {
 
 function AuditCard({ audit }: { audit: ToolAudit }) {
   const isOptimal = audit.action === 'keep';
-  const isEliminate = audit.action === 'eliminate';
   
   const iconMap = {
     keep: <CheckCircle2 className="w-6 h-6 text-emerald-500" />,

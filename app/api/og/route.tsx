@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
               marginTop: 'auto',
             }}
           >
-            spendlens.vercel.app — Free & No Login Required
+            {process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'spendlens.app'} — Free & No Login Required
           </div>
         </div>
       ),
@@ -68,8 +68,8 @@ export async function GET(req: NextRequest) {
         height: 630,
       }
     );
-  } catch (e: any) {
-    console.log(`${e.message}`);
+  } catch (e) {
+    console.log(`${e instanceof Error ? e.message : 'Unknown error'}`);
     return new Response(`Failed to generate the image`, {
       status: 500,
     });

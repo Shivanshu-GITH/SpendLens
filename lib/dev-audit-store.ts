@@ -22,7 +22,7 @@ function getStore(): Map<string, StoredAudit> {
   return globalStore.__spendlensDevAudits;
 }
 
-export function useDevAuditStore(): boolean {
+export function shouldUseDevAuditStore(): boolean {
   return process.env.NODE_ENV === 'development' && !isSupabaseConfigured();
 }
 
