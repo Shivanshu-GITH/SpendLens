@@ -49,3 +49,23 @@
 - Wrote all required documentation (`README.md`, `REFLECTION.md`, etc.).
 - Final verification of all user flows.
 - Deployed to Vercel.
+
+## Day 8 — 2026-05-24
+**Goal:** Fixes & UI Refinement
+- Fixed button nesting issues in Results page for better React compliance.
+- Improved PDF export stability and styling.
+- **Fix:** Resolved a layout shift occurring during export generation.
+
+## Day 9 — 2026-05-25
+**Goal:** Enhanced Audits & PDF Export
+- Refactored PDF export logic into a dedicated library (`lib/export-pdf.ts`).
+- Added automated tests for PDF generation using Vitest.
+- Enhanced Supabase integration for more robust data handling.
+- Optimized rate limiting and API response handling with new fetch utilities.
+
+## Day 10 — 2026-05-27
+**Goal:** Code Health & Vercel Optimization
+- Resolved all project-wide ESLint and TypeScript diagnostics.
+- Optimized environment variable handling for dynamic Vercel deployments.
+- Renamed and refactored internal stores for better Hook compliance.
+- Finalized production-ready configuration for email and OG image generation.
